@@ -2,11 +2,20 @@ package edu.ap.spring.model;
 
 import java.time.LocalDate;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+
+@Entity
 public class InhaalExamen {
  
+	@Column
     private String student;
+	@Column
     private String exam;
+	@GeneratedValue
  	private String date;
+ 	@Column
 	private String reason;
  
     public InhaalExamen() {

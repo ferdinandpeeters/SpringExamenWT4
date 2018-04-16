@@ -10,8 +10,11 @@ import java.util.Set;
 import javax.security.auth.message.callback.PrivateKeyCallback.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +26,7 @@ import edu.ap.spring.model.InhaalExamen;
 import edu.ap.spring.redis.RedisService;
 
 @Controller
+@RequestMapping("")
 public class RedisController {
 
    private List<String> redisMessages = new ArrayList<String>();
@@ -45,7 +49,7 @@ public class RedisController {
 	   
 	   return html;
    }
-   
+   /*
    @RequestMapping("/listold")
    @ResponseBody
    public String list() {
@@ -76,7 +80,7 @@ public class RedisController {
 	   
 	   return html;
    }
-   
+   */
    // Messaging
    public void onMessage(String message) {
 	   this.redisMessages.add(message);
@@ -92,19 +96,31 @@ public class RedisController {
     	    this.date = date;
 	*/
    @RequestMapping(method = RequestMethod.POST, value = "/new")
-   void newStudent(@PathVariable String userId, @RequestBody InhaalExamen input) {
+   @ResponseBody
+   ResponseEntity<?> newStudent(@ModelAttribute InhaalExamen input) {
+	   System.out.println(input.toString());
 	   Map<String, String> entry = new HashMap<String, String>();
 	   entry.put("student", input.getStudent());
 	   entry.put("exam", input.getExam());
 	   entry.put("reason", input.getReason());
 	   entry.put("date", input.getDate());
-	   service.hset("inhaalexamens:" + input.getStudent(), entry);
+	   String key = "inhaalexamen:" + entry.get("student") + entry.get("exam") + entry.get("reason");
+	   
+	   System.out.println(key);
+	   System.out.println(service.getKey(key));
+	   HttpHeaders responseHeaders = new HttpHeaders();
+       return new ResponseEntity<>(key, responseHeaders, HttpStatus.OK);
 	}
    
    @RequestMapping("/list")
    @ResponseBody
-	public String listPersons() {
+	public String listPersons(@RequestParam("name") String naam) {
+	   	Map<Object, Object> output = service.hgetAll(naam);
     	System.out.println("Listed");
-    	return "<html><body>heey</body></html>";
-	}
+	
+	   String html = "<HTML><HEAD><meta http-equiv=\"refresh\" content=\"5\"></HEAD>";
+	   html += "<BODY><h1>Messages</h1><br/><br/><ul>" + output + "</BODY></HTML>";
+	   
+	   return html;
+   }
 }
